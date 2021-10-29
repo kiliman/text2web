@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(255)
+  phoneNumber  String         @db.VarChar(255)
+  date         DateTime       @db.Date
+  Picture      Picture[]
+  Registration Registration[]
+}
+
+model Picture {
+  id          Int      @id @default(autoincrement())
+  url         String   @db.VarChar(255)
+  text        String?
+  name        String   @db.VarChar(255)
+  phoneNumber String   @db.VarChar(255)
+  timestamp   DateTime @default(now()) @db.Timestamp(6)
+  eventId     Int
+  Event       Event    @relation(fields: [eventId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Picture_Event")
+
+  @@index([eventId, timestamp], map: "Picture_event_timestamp")
+}
+
+model Registration {
+  id          Int    @id @default(autoincrement())
+  eventId     Int
+  name        String @db.VarChar(255)
+  phoneNumber String @db.VarChar(255)
+  Event       Event  @relation(fields: [eventId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Registration_Event")
+
+  @@unique([eventId, phoneNumber], map: "Registration_event_phoneNumber")
+}
