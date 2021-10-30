@@ -154,6 +154,7 @@ export let action: ActionFunction = async ({ request, context }) => {
 
   // let clients know there's a new picture
   wsServer.clients.forEach((client: any) => {
+    console.log('sending new_picture')
     client.send(JSON.stringify({ type: 'new_picture' }))
   })
 

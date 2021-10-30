@@ -3,7 +3,7 @@ const path = require('path')
 const express = require('express')
 const compression = require('compression')
 const morgan = require('morgan')
-const ws = require('ws')
+const { Server } = require('ws')
 const { createRequestHandler } = require('@remix-run/express')
 const Optimus = require('optimus-js')
 const optimus = new Optimus(1580030173, 59260789, 1163945558)
@@ -13,10 +13,6 @@ const BUILD_DIR = path.join(process.cwd(), 'server/build')
 process.env.IMAGES_DIR = path.join(process.cwd(), 'public/images')
 
 let app = express()
-const wsServer = new ws.Server({ noServer: true })
-wsServer.on('connection', socket => {
-  socket.on('message', message => console.log(message))
-})
 
 app.use(compression())
 app.use(morgan('tiny'))
@@ -46,11 +42,9 @@ let port = process.env.PORT || 3000
 const server = app.listen(port, () => {
   console.log(`Express server listening on port ${port}`)
 })
-server.on('upgrade', (request, socket, head) => {
-  console.log('upgrade')
-  wsServer.handleUpgrade(request, socket, head, socket => {
-    wsServer.emit('connection', socket, request)
-  })
+const wsServer = new Server({ server })
+wsServer.on('connection', socket => {
+  socket.on('message', message => console.log(message))
 })
 
 function getLoadContext(req, res) {

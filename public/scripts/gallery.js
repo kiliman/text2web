@@ -28,7 +28,7 @@ let machine
 const host = window.location.host
 const protocol = window.location.protocol
 window.initGallery = function () {
-  let ws = new WebSocket(`ws://${host}`)
+  let ws = new WebSocket(location.origin.replace(/^http/, 'ws'))
   ws.onopen = () => {
     ws.send('hello')
   }
