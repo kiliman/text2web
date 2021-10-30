@@ -1,7 +1,7 @@
 console.log('gallery.js')
 let options = {}
 const defaultOptions = {
-  duration: 5,
+  duration: 3,
   counter: true,
   progress: true,
   selectors: {},
@@ -172,7 +172,7 @@ window.initGallery = function () {
       }),
     )
     machine.onTransition = render
-    machine.send('NEXT')
+    machine.send('START')
   })
 }
 
