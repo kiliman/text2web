@@ -1,6 +1,6 @@
 let options = {}
 const defaultOptions = {
-  duration: 3,
+  duration: 5,
   counter: true,
   progress: true,
   selectors: {},
