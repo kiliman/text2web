@@ -46,11 +46,11 @@ let port = process.env.PORT || 3000
 const server = app.listen(port, () => {
   console.log(`Express server listening on port ${port}`)
 })
-server.on('upgrade', (request, socket, head) => {
-  wss.handleUpgrade(request, socket, head, ws => {
-    wss.emit('connection', ws, request)
-  })
-})
+// server.on('upgrade', (request, socket, head) => {
+//   wss.handleUpgrade(request, socket, head, ws => {
+//     wss.emit('connection', ws, request)
+//   })
+// })
 
 function getLoadContext(req, res) {
   return { optimus, wss }

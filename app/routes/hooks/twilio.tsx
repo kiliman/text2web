@@ -151,11 +151,11 @@ export let action: ActionFunction = async ({ request, context }) => {
 
   const xml = twilioResponse.toString()
 
-  // let clients know there's a new picture
-  wss.clients.forEach((client: any) => {
-    console.log('sending new_picture')
-    client.send(JSON.stringify({ type: 'new_picture' }))
-  })
+  // // let clients know there's a new picture
+  // wss.clients.forEach((client: any) => {
+  //   console.log('sending new_picture')
+  //   client.send(JSON.stringify({ type: 'new_picture' }))
+  // })
 
   return new Response(xml, {
     status: 200,

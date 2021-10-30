@@ -7,8 +7,8 @@ import { saveEventData } from '~/gallery.client'
 
 export let meta: MetaFunction = () => {
   return {
-    title: 'Remix Starter',
-    description: 'Welcome to remix!',
+    title: 'text2web',
+    description: 'text2web gallery viewer',
   }
 }
 
@@ -36,7 +36,20 @@ export default function Index() {
           <img id="fcig_image1" className="fcig_image" alt="" />
           <img id="fcig_image2" className="fcig_image" alt="" />
           <video id="fcig_video" autoPlay controls></video>
-          <div id="fcig_message"></div>
+          <div id="fcig_message">
+            <div id="fcig_message_header"></div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+                gap: '48px;',
+              }}
+            >
+              <div id="fcig_message_text"></div>
+              <div id="fcig_message_name"></div>
+            </div>
+          </div>
         </div>
       </div>
       <div id="fcig_counter" style={{ display: 'none', alignItems: 'center' }}>

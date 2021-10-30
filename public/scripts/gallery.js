@@ -19,6 +19,7 @@ let image2
 let video
 let preload
 let message
+let messageName
 let counter
 let spinner
 let counterSpan
@@ -27,26 +28,26 @@ let machine
 const host = window.location.host
 const protocol = window.location.protocol
 window.initGallery = function () {
-  let ws = new WebSocket(location.origin.replace(/^http/, 'ws'))
-  ws.onopen = () => {
-    ws.send('hello')
-  }
-  ws.onmessage = async message => {
-    console.log(message)
-    const { data } = message
-    const msg = JSON.parse(data)
-    if (msg.type === 'new_picture') {
-      const response = await fetch(`${protocol}//${host}/?_data=routes/index`)
-      const json = await response.json()
-      const { event } = json
-      localStorage.setItem('event', JSON.stringify(event))
-      machine.send('UPDATED')
-    }
-  }
-  ws.onerror = error => {
-    console.log('Remix dev asset server web socket error:')
-    console.error(error)
-  }
+  // let ws = new WebSocket(location.origin.replace(/^http/, 'ws'))
+  // ws.onopen = () => {
+  //   ws.send('hello')
+  // }
+  // ws.onmessage = async message => {
+  //   console.log(message)
+  //   const { data } = message
+  //   const msg = JSON.parse(data)
+  //   if (msg.type === 'new_picture') {
+  //     const response = await fetch(`${protocol}//${host}/?_data=routes/index`)
+  //     const json = await response.json()
+  //     const { event } = json
+  //     localStorage.setItem('event', JSON.stringify(event))
+  //     machine.send('UPDATED')
+  //   }
+  // }
+  // ws.onerror = error => {
+  //   console.log('Remix dev asset server web socket error:')
+  //   console.error(error)
+  // }
 
   document.body.addEventListener('keyup', handleKeyUp)
   document.body.addEventListener(
@@ -61,7 +62,8 @@ window.initGallery = function () {
   image1 = document.getElementById('fcig_image1')
   image2 = document.getElementById('fcig_image2')
   video = document.getElementById('fcig_video')
-  message = document.getElementById('fcig_message')
+  message = document.getElementById('fcig_message_text')
+  messageName = document.getElementById('fcig_message_name')
   preload = document.getElementById('fcig_preload')
   counter = document.getElementById('fcig_counter')
   spinner = document.getElementById('fcig_spinner')
@@ -172,6 +174,25 @@ window.initGallery = function () {
     )
     machine.onTransition = render
     machine.send('START')
+
+    setInterval(async () => {
+      let lastId = parseInt(localStorage.getItem('lastId') ?? '0')
+      const response = await fetch(
+        `${protocol}//${host}/api/pictures?lastId=${lastId}&_data=routes/api/pictures`,
+      )
+      const json = await response.json()
+      const { count } = json
+      console.log({ lastId, count })
+      if (count > 0) {
+        const response = await fetch(`${protocol}//${host}/?_data=routes/index`)
+        const json = await response.json()
+        const { event } = json
+        const lastId = event.Picture[event.Picture.length - 1].id
+        localStorage.setItem('event', JSON.stringify(event))
+        localStorage.setItem('lastId', lastId)
+        machine.send('UPDATED')
+      }
+    }, 5000)
   })
 }
 
@@ -340,6 +361,7 @@ async function render() {
   }
   const { index, currImage, links, gridInitialized } = machine.context
   let messageText = ''
+  let messageNameText = ''
   let nextImage = currImage
   options = await getOptions()
   if (view == 'grid') {
@@ -362,7 +384,8 @@ async function render() {
     }
   } else if (view === 'image') {
     const { url, text, name } = links[index]
-    messageText = `<p style="font-size: 125%;">${text}</p><p><i>${name}</i></p>`
+    messageText = `<p style="font-size: 125%;">${text}</p>`
+    messageNameText = `<p><i>${name}</i></p>`
     let src = url
     const image = currImage === 1 ? image1 : image2
     nextImage = currImage === 1 ? 2 : 1
@@ -392,6 +415,7 @@ async function render() {
   if (view === 'grid') grid.focus()
   image.style.display = view === 'image' ? 'grid' : 'none'
   message.innerHTML = messageText
+  messageName.innerHTML = messageNameText
   image1.classList.toggle(
     'current',
     view === 'image' && !isVideo && currImage === 1,
