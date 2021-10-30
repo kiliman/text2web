@@ -1,4 +1,3 @@
-console.log('gallery.js')
 let options = {}
 const defaultOptions = {
   duration: 3,

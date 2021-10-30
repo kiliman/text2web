@@ -150,7 +150,7 @@ export let action: ActionFunction = async ({ request, context }) => {
   )
 
   const xml = twilioResponse.toString()
-  console.log(xml)
+  console.log('ws.clients', wsServer.clients.length)
 
   // let clients know there's a new picture
   wsServer.clients.forEach((client: any) => {
@@ -214,7 +214,6 @@ async function saveMedia(
     fetch_format: 'auto',
     quality: 'auto',
   })
-  console.log(result)
   deleteMediaItem(mediaItem)
   await prisma.picture.create({
     data: {
