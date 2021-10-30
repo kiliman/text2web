@@ -12,7 +12,11 @@ const MODE = process.env.NODE_ENV
 const BUILD_DIR = path.join(process.cwd(), 'server/build')
 process.env.IMAGES_DIR = path.join(process.cwd(), 'public/images')
 
-let app = express()
+const app = express()
+const wss = new Server({ noServer: true })
+wss.on('connection', socket => {
+  socket.on('message', message => console.log(message))
+})
 
 app.use(compression())
 app.use(morgan('tiny'))
@@ -42,13 +46,14 @@ let port = process.env.PORT || 3000
 const server = app.listen(port, () => {
   console.log(`Express server listening on port ${port}`)
 })
-const wsServer = new Server({ server })
-wsServer.on('connection', socket => {
-  socket.on('message', message => console.log(message))
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, ws => {
+    wss.emit('connection', ws, request)
+  })
 })
 
 function getLoadContext(req, res) {
-  return { optimus, wsServer }
+  return { optimus, wss }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

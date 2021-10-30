@@ -26,7 +26,7 @@ export let headers: HeadersFunction = () => {
 }
 
 export let action: ActionFunction = async ({ request, context }) => {
-  const { optimus, wsServer } = context
+  const { optimus, wss } = context
   const data = new URLSearchParams(await request.text())
   const toNumber = data.get('To')!
   const senderNumber = data.get('From')!
@@ -150,10 +150,9 @@ export let action: ActionFunction = async ({ request, context }) => {
   )
 
   const xml = twilioResponse.toString()
-  console.log('ws.clients', wsServer.clients.length)
 
   // let clients know there's a new picture
-  wsServer.clients.forEach((client: any) => {
+  wss.clients.forEach((client: any) => {
     console.log('sending new_picture')
     client.send(JSON.stringify({ type: 'new_picture' }))
   })
