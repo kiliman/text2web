@@ -1,21 +1,86 @@
-import type { LinksFunction, LoaderFunction } from 'remix'
 import {
-  Meta,
+  Link,
   Links,
-  Scripts,
-  useLoaderData,
   LiveReload,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
   useCatch,
 } from 'remix'
-import { Outlet } from 'react-router-dom'
-import stylesUrl from './styles/global.css'
+import type { LinksFunction } from 'remix'
 
+import globalStylesUrl from '~/styles/global.css'
+
+// https://remix.run/api/app#links
 export let links: LinksFunction = () => {
-  return [{ rel: 'stylesheet', href: stylesUrl }]
+  return [{ rel: 'stylesheet', href: globalStylesUrl }]
 }
 
-export let loader: LoaderFunction = async () => {
-  return { date: new Date() }
+// https://remix.run/api/conventions#default-export
+// https://remix.run/api/conventions#route-filenames
+export default function App() {
+  return (
+    <Document>
+      <Outlet />
+    </Document>
+  )
+}
+
+// https://remix.run/docs/en/v1/api/conventions#errorboundary
+export function ErrorBoundary({ error }: { error: Error }) {
+  console.error(error)
+  return (
+    <Document title="Error!">
+      <Layout>
+        <div>
+          <h1>There was an error</h1>
+          <p>{error.message}</p>
+          <hr />
+          <p>
+            Hey, developer, you should replace this with what you want your
+            users to see.
+          </p>
+        </div>
+      </Layout>
+    </Document>
+  )
+}
+
+// https://remix.run/docs/en/v1/api/conventions#catchboundary
+export function CatchBoundary() {
+  let caught = useCatch()
+
+  let message
+  switch (caught.status) {
+    case 401:
+      message = (
+        <p>
+          Oops! Looks like you tried to visit a page that you do not have access
+          to.
+        </p>
+      )
+      break
+    case 404:
+      message = (
+        <p>Oops! Looks like you tried to visit a page that does not exist.</p>
+      )
+      break
+
+    default:
+      throw new Error(caught.data || caught.statusText)
+  }
+
+  return (
+    <Document title={`${caught.status} ${caught.statusText}`}>
+      <Layout>
+        <h1>
+          {caught.status}: {caught.statusText}
+        </h1>
+        {message}
+      </Layout>
+    </Document>
+  )
 }
 
 function Document({
@@ -25,68 +90,37 @@ function Document({
   children: React.ReactNode
   title?: string
 }) {
-  let ts = Date.now()
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <link rel="icon" href="/favicon.png" type="image/png" />
-        <script src={`/scripts/gallery.js?ts=${ts}`} />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
         {title ? <title>{title}</title> : null}
         <Meta />
         <Links />
       </head>
       <body>
         {children}
+        <ScrollRestoration />
         <Scripts />
         {process.env.NODE_ENV === 'development' && <LiveReload />}
+        <script src="/scripts/gallery.js"></script>
       </body>
     </html>
   )
 }
 
-export default function App() {
-  let data = useLoaderData()
-
+function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <Document>
-      <Outlet />
-    </Document>
-  )
-}
-
-export function CatchBoundary() {
-  let caught = useCatch()
-
-  switch (caught.status) {
-    case 401:
-    case 404:
-      return (
-        <Document title={`${caught.status} ${caught.statusText}`}>
-          <h1>
-            {caught.status} {caught.statusText}
-          </h1>
-        </Document>
-      )
-
-    default:
-      throw new Error(
-        `Unexpected caught response with status: ${caught.status}`,
-      )
-  }
-}
-
-export function ErrorBoundary({ error }: { error: Error }) {
-  console.error(error)
-
-  return (
-    <Document title="Uh-oh!">
-      <h1>App Error</h1>
-      <pre>{error.message}</pre>
-      <p>
-        Replace this UI with what you want users to see when your app throws
-        uncaught errors.
-      </p>
-    </Document>
+    <div
+      style={{
+        display: 'grid',
+        placeItems: 'center',
+        height: '100vh',
+        width: '100%;',
+      }}
+    >
+      <div>{children}</div>
+    </div>
   )
 }

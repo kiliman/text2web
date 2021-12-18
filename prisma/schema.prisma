@@ -19,6 +19,7 @@ model Event {
 model Picture {
   id          Int      @id @default(autoincrement())
   url         String   @db.VarChar(255)
+  etag        String?  @db.VarChar(255)
   text        String?
   name        String   @db.VarChar(255)
   phoneNumber String   @db.VarChar(255)
@@ -27,6 +28,8 @@ model Picture {
   Event       Event    @relation(fields: [eventId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Picture_Event")
 
   @@index([eventId, timestamp], map: "Picture_event_timestamp")
+  @@index([eventId, etag], map: "Picture_event_etag")
+
 }
 
 model Registration {

@@ -1,8 +1,6 @@
-import type { MetaFunction, LinksFunction, LoaderFunction } from 'remix'
+import type { MetaFunction, LoaderFunction } from 'remix'
 import { useLoaderData } from 'remix'
-import { Link } from 'react-router-dom'
 import { prisma } from '~/db/prisma.server'
-import stylesUrl from '../styles/index.css'
 import { saveEventData } from '~/gallery.client'
 
 export let meta: MetaFunction = () => {
@@ -11,18 +9,39 @@ export let meta: MetaFunction = () => {
     description: 'text2web gallery viewer',
   }
 }
-
-export let loader: LoaderFunction = async ({ context }) => {
+export let loader: LoaderFunction = async ({ params, context }) => {
+  const { optimus } = context
+  const { hash } = params
+  let eventId = optimus.decode(hash)
   let event = await prisma.event.findUnique({
-    where: { id: 1 },
-    include: { Picture: true },
+    where: { id: eventId },
+    include: {
+      Picture: {
+        orderBy: { id: 'asc' },
+      },
+    },
   })
+  if (!event) {
+    throw new Response('Not found', { status: 404 })
+  }
   return {
-    event,
+    event: {
+      hash,
+      lastId: event.Picture.length
+        ? event.Picture[event.Picture.length - 1].id
+        : 0,
+      pictures: event.Picture.map((pic: any) => ({
+        id: pic.id,
+        name: pic.name,
+        text: pic.text,
+        url: pic.url,
+      })),
+    },
   }
 }
 
 export default function Index() {
+  console.log('index')
   let { event } = useLoaderData()
   if (saveEventData) {
     saveEventData(event)
@@ -38,14 +57,7 @@ export default function Index() {
           <video id="fcig_video" autoPlay controls></video>
           <div id="fcig_message">
             <div id="fcig_message_header"></div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-end',
-                gap: '48px;',
-              }}
-            >
+            <div id="fcig_message_body">
               <div id="fcig_message_text"></div>
               <div id="fcig_message_name"></div>
             </div>

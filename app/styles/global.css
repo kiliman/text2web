@@ -1,6 +1,8 @@
 body {
   background-color: black;
+  color: white;
   font-family: sans-serif;
+  margin: 0;
 }
 .fcig_noscroll::-webkit-scrollbar {
   width: 0 !important;
@@ -102,16 +104,38 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 24px;
-  margin-top: 48px;
-  margin-left: 48px;
-  margin-right: 48px;
   font-size: 48px;
   font-weight: bold;
   color: white;
-  background-color: rgba(0, 0, 0, 0.6);
 }
 
+#fcig_message_header {
+  height: 48px;
+  width: 100%;
+  background-image: linear-gradient(
+    hsla(0, 0%, 0%, 0) 0%,
+    hsla(0, 0%, 0%, 0.002) 1.8%,
+    hsla(0, 0%, 0%, 0.008) 4.8%,
+    hsla(0, 0%, 0%, 0.021) 9%,
+    hsla(0, 0%, 0%, 0.042) 13.9%,
+    hsla(0, 0%, 0%, 0.075) 19.8%,
+    hsla(0, 0%, 0%, 0.126) 27%,
+    hsla(0, 0%, 0%, 0.194) 35%,
+    hsla(0, 0%, 0%, 0.278) 43.5%,
+    hsla(0, 0%, 0%, 0.382) 53%,
+    hsla(0, 0%, 0%, 0.541) 66%,
+    hsla(0, 0%, 0%, 0.6) 100%
+  );
+}
+#fcig_message_body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 48px;
+  padding: 24px;
+  padding-top: 8pxj;
+  background-color: rgba(0, 0, 0, 0.6);
+}
 #fcig_message p {
   padding: 0;
   margin: 0;

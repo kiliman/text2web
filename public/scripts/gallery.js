@@ -27,7 +27,11 @@ let linkSelector
 let machine
 const host = window.location.host
 const protocol = window.location.protocol
-window.initGallery = function () {
+let hash
+window.initGallery = function (hash) {
+  window.hash = hash
+  console.log(`gallery initialized hash: ${hash}`)
+
   // let ws = new WebSocket(location.origin.replace(/^http/, 'ws'))
   // ws.onopen = () => {
   //   ws.send('hello')
@@ -121,6 +125,7 @@ window.initGallery = function () {
           if (context.index < context.links.length - 1) {
             context.index++
           } else {
+            context.links = getOrderedImages()
             context.index = 0
           }
         },
@@ -157,7 +162,8 @@ window.initGallery = function () {
           video.currentTime = video.currentTime + 10.0
         },
         handleUpdate: ({ context, payload }) => {
-          context.links = getImages()
+          context.links = getOrderedImages()
+          context.index = 0
           context.gridInitialized = false
         },
       }),
@@ -165,7 +171,7 @@ window.initGallery = function () {
         index: -1,
         lastIndex: -1,
         currImage: 1,
-        links: getImages(),
+        links: getOrderedImages(),
         gridInitialized: false,
         isPlaying: false,
         timerId: null,
@@ -176,20 +182,21 @@ window.initGallery = function () {
     machine.send('START')
 
     setInterval(async () => {
-      let lastId = parseInt(localStorage.getItem('lastId') ?? '0')
+      const event = JSON.parse(localStorage.getItem(`event-${window.hash}`))
+      console.log('fetching pictures...')
       const response = await fetch(
-        `${protocol}//${host}/api/pictures?lastId=${lastId}&_data=routes/api/pictures`,
+        `${protocol}//${host}/api/pictures?hash=${hash}&lastId=${
+          event.lastId ?? 0
+        }`,
       )
       const json = await response.json()
       const { count } = json
-      console.log({ lastId, count })
       if (count > 0) {
-        const response = await fetch(`${protocol}//${host}/?_data=routes/index`)
+        const response = await fetch(
+          `${protocol}//${host}/event/${hash}?_data=routes/index.event.$hash`,
+        )
         const json = await response.json()
-        const { event } = json
-        const lastId = event.Picture[event.Picture.length - 1].id
-        localStorage.setItem('event', JSON.stringify(event))
-        localStorage.setItem('lastId', lastId)
+        localStorage.setItem(`event-${hash}`, JSON.stringify(json.event))
         machine.send('UPDATED')
       }
     }, 5000)
@@ -197,8 +204,27 @@ window.initGallery = function () {
 }
 
 function getImages() {
-  const event = JSON.parse(localStorage.getItem('event'))
-  return event.Picture
+  const event = JSON.parse(localStorage.getItem(`event-${window.hash}`))
+  const pictures = event.pictures
+  return pictures
+}
+function getOrderedImages() {
+  const pictures = getImages()
+  const viewCounts = JSON.parse(
+    localStorage.getItem(`counts-${window.hash}`) || '{}',
+  )
+
+  pictures.sort((a, b) => (viewCounts[a.id] ?? 0) - (viewCounts[b.id] ?? 0))
+  console.log({ viewCounts, pictures })
+  return pictures
+}
+
+function updateViewCount(id) {
+  const viewCounts = JSON.parse(
+    localStorage.getItem(`counts-${window.hash}`) || '{}',
+  )
+  viewCounts[id] = (viewCounts[id] ?? 0) + 1
+  localStorage.setItem(`counts-${window.hash}`, JSON.stringify(viewCounts))
 }
 
 let progress = null
@@ -383,7 +409,8 @@ async function render() {
       target.classList.add('current')
     }
   } else if (view === 'image') {
-    const { url, text, name } = links[index]
+    const { id, url, text, name } = links[index]
+    updateViewCount(id)
     messageText = `<p style="font-size: 125%;">${text}</p>`
     messageNameText = `<p><i>${name}</i></p>`
     let src = url
